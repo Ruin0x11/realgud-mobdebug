@@ -2,7 +2,7 @@
 ;; (test-simple-run "emacs -batch -L %s -l %s" (file-name-directory (locate-library "test-simple.elc")) buffer-file-name)
 
 (require 'test-simple)
-(load-file "../realgud-node-inspect/node-inspect.el")
+(load-file "../realgud-mobdebug/mobdebug.el")
 
 (eval-when-compile (defvar test:run-process-save))
 
@@ -24,9 +24,9 @@
     (assert-equal  expanded-name script-filename "file name check")
     ))
 
-(note "node-inspect-parse-cmd-args")
+(note "mobdebug-parse-cmd-args")
 (assert-equal '(("node") nil ("inspect" "foo"))
-	      (node-inspect-parse-cmd-args '("node" "inspect" "foo")))
+	      (mobdebug-parse-cmd-args '("node" "inspect" "foo")))
 
 ;; FIXME: need to mock remove-ansi-schmutz in realgud:mobdebug
 ;; (realgud:mobdebug "node inspect ./gcd.js 3 5")

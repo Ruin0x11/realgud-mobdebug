@@ -75,6 +75,7 @@ fringe and marginal icons."
     	(with-current-buffer cmd-buf
     	  ;; FIXME should allow customization whether to do or not
     	  ;; and also only do if hook is not already there.
+          (realgud-command "basedir %s" default-directory nil nil)
           (realgud-command "step" nil nil nil)
     	  )
       )

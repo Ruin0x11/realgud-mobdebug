@@ -14,7 +14,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; "node inspect" debugger
+;;; mobdebug debugger
 
 (eval-when-compile (require 'cl-lib))   ;For setf.
 
@@ -61,11 +61,18 @@ realgud-loc-pat struct")
 ;; ;; * 4 const client = new armlet.Client(
 ;; ;; ^^^^
 ;; ;;
-;; (setf (gethash "brkpt-set" realgud:mobdebug-pat-hash)
-;;       (make-realgud-loc-pat
-;;        :regexp "^\*[ ]*\\([0-9]+\\) \\(.+\\)"
-;;        :line-group 1
-;;        :text-group 2))
+(setf (gethash "brkpt-set" realgud:mobdebug-pat-hash)
+      (make-realgud-loc-pat
+       :regexp (format
+                "\\(> \\)?Breakpoint %s at file %s line %s"
+                realgud:regexp-captured-num
+                "\\([^ ]+\\)"
+                realgud:regexp-captured-num)
+       :num 2
+       :alt-file-group 3
+       :alt-line-group 4
+       :file-group 3
+       :line-group 4))
 
 ;; Regular expression that describes a V8 backtrace line.
 ;; For example:
@@ -79,11 +86,18 @@ realgud-loc-pat struct")
 ;; response.
 ;; For example:
 ;;   Removed 1 breakpoint(s).
-;; (setf (gethash "brkpt-del" realgud:mobdebug-pat-hash)
-;;       (make-realgud-loc-pat
-;;        :regexp (format "^Removed %s breakpoint(s).\n"
-;; 		       realgud:regexp-captured-num)
-;;        :num 1))
+(setf (gethash "brkpt-del" realgud:mobdebug-pat-hash)
+      (make-realgud-loc-pat
+       :regexp (format
+                "\\(> \\)?Removed breakpoints? \\(\\([0-9]+ *\\)+\\)\n"
+                realgud:regexp-captured-num
+                "\\([^ ]+\\)"
+                realgud:regexp-captured-num)
+       :num 2
+       :alt-file-group 3
+       :alt-line-group 4
+       :file-group 3
+       :line-group 4))
 
 
 (defconst realgud:mobdebug-frame-module-regexp "\\(nil\\)?\"\\([^ \t\n]+\\)\"")
@@ -173,8 +187,8 @@ the mobdebug command to use, like 'out'.")
       realgud:mobdebug-command-hash)
 
 (setf (gethash "backtrace"        realgud:mobdebug-command-hash) "stack")
-(setf (gethash "break"            realgud:mobdebug-command-hash) "setb %f %l")
-(setf (gethash "delete"           realgud:mobdebug-command-hash) "delb %f %l")
+(setf (gethash "break"            realgud:mobdebug-command-hash) "setb %X %l")
+(setf (gethash "delete"           realgud:mobdebug-command-hash) "delb %p")
 (setf (gethash "delete-all"       realgud:mobdebug-command-hash) "dellallb")
 (setf (gethash "continue"         realgud:mobdebug-command-hash) "run")
 (setf (gethash "eval"             realgud:mobdebug-command-hash) "eval '%s'")
@@ -182,6 +196,7 @@ the mobdebug command to use, like 'out'.")
 (setf (gethash "info-breakpoints" realgud:mobdebug-command-hash) "listb")
 (setf (gethash "kill"             realgud:mobdebug-command-hash) "done")
 (setf (gethash "quit"             realgud:mobdebug-command-hash) "exit")
+(setf (gethash "basedir"          realgud:mobdebug-command-hash) "basedir %s")
 
 ;; We need aliases for step and next because the default would
 ;; do step 1 and mobdebug doesn't handle this. And if it did,

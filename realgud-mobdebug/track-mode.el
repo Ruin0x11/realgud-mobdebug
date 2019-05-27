@@ -62,7 +62,8 @@ the argument is positive, and disables it otherwise.
       (progn
 	(realgud:track-set-debugger "mobdebug")
         (realgud:mobdebug-track-mode-hook)
-        (realgud:track-mode-enable))
+        ;(realgud:track-mode-enable)
+        (realgud-track-mode t))
     (progn
       (setq realgud-track-mode nil)
       ))

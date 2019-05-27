@@ -33,37 +33,37 @@
 
 ;; FIXME: I think the following could be generalized and moved to
 ;; realgud-... probably via a macro.
-(defvar realgud:node-inspect-minibuffer-history nil
-  "Minibuffer history list for the command `node-inspect'.")
+(defvar realgud:mobdebug-minibuffer-history nil
+  "Minibuffer history list for the command `mobdebug'.")
 
-(easy-mmode-defmap realgud:node-inspect-minibuffer-local-map
+(easy-mmode-defmap realgud:mobdebug-minibuffer-local-map
   '(("\C-i" . comint-dynamic-complete-filename))
-  "Keymap for minibuffer prompting of node-inspect startup command."
+  "Keymap for minibuffer prompting of mobdebug startup command."
   :inherit minibuffer-local-map)
 
 ;; FIXME: I think this code and the keymaps and history
 ;; variable chould be generalized, perhaps via a macro.
-(defun node-inspect-query-cmdline (&optional opt-debugger)
+(defun mobdebug-query-cmdline (&optional opt-debugger)
   (realgud-query-cmdline
-   'realgud:node-inspect-suggest-invocation
-   realgud:node-inspect-minibuffer-local-map
-   'realgud:node-inspect-minibuffer-history
+   'realgud:mobdebug-suggest-invocation
+   realgud:mobdebug-minibuffer-local-map
+   'realgud:mobdebug-minibuffer-history
    opt-debugger))
 
 ;;; FIXME: DRY this with other *-parse-cmd-args routines
-(defun node-inspect-parse-cmd-args (orig-args)
+(defun mobdebug-parse-cmd-args (orig-args)
   "Parse command line ORIG-ARGS for the name of script to debug.
 
 ORIG-ARGS should contain a tokenized list of the command line to run.
 
 We return the a list containing
-* the name of the debugger given (e.g. node-inspect) and its arguments ,
+* the name of the debugger given (e.g. mobdebug) and its arguments ,
   a list of strings
 * the script name and its arguments - list of strings
 
 For example for the following input:
   (map 'list 'symbol-name
-   '(node --interactive --debugger-port 5858 /tmp node-inspect ./gcd.js a b))
+   '(node --interactive --debugger-port 5858 /tmp mobdebug ./gcd.js a b))
 
 we might return:
    ((\"node\" \"--interactive\" \"--debugger-port\" \"5858\") nil
@@ -72,7 +72,7 @@ we might return:
 Note that path elements have been expanded via `expand-file-name'."
 
   ;; Parse the following kind of pattern:
-  ;;  node node-inspect-options script-name script-options
+  ;;  node mobdebug-options script-name script-options
   (let (
 	(args orig-args)
 	(pair)          ;; temp return from
@@ -82,8 +82,8 @@ Note that path elements have been expanded via `expand-file-name'."
 
 	;; One dash is added automatically to the below, so
 	;; h is really -h and -debugger_port is really --debugger_port.
-	(node-inspect-two-args '("-debugger_port"))
-	(node-inspect-opt-two-args '())
+	(mobdebug-two-args '("-debugger_port"))
+	(mobdebug-opt-two-args '())
 
 	;; Things returned
 	(script-name nil)
@@ -95,49 +95,21 @@ Note that path elements have been expanded via `expand-file-name'."
 	;; Got nothing: return '(nil, nil, nil)
 	(list interpreter-args nil script-args)
       ;; else
-      (progn
-	;; Remove "node-inspect" (or "nodemon" or "node") from invocation like:
-	;; node-inspect --node-inspect-options script --script-options
-	(setq debugger-name (file-name-sans-extension
-			     (file-name-nondirectory (car args))))
-	(unless (string-match "^node\\(?:js\\|mon\\)?$" debugger-name)
-	  (message
-	   "Expecting debugger name `%s' to be `node', `nodemon', or `node-inspect'"
-	   debugger-name))
-	(setq interpreter-args (list (pop args)))
-
-	;; Skip to the first non-option argument.
-	(while (and args (not script-name))
-	  (let ((arg (car args)))
-	    (cond
-	     ((equal "debug" arg)
-	      (nconc interpreter-args (list arg))
-	      (setq args (cdr args))
-	      )
-
-	     ;; Options with arguments.
-	     ((string-match "^-" arg)
-	      (setq pair (realgud-parse-command-arg
-			  args node-inspect-two-args node-inspect-opt-two-args))
-	      (nconc interpreter-args (car pair))
-	      (setq args (cadr pair)))
-	     ;; Anything else must be the script to debug.
-	     (t (setq script-name (realgud:expand-file-name-if-exists arg))
-	       (setq script-args (cons script-name (cdr args))))
-	     )))
-	(list interpreter-args nil script-args)))
+      (let* ((file (nth 3 args))
+             (filename (if (directory-name-p file) file file)))
+        (list (subseq args 0 2) (list (nth 2 args)) (list filename))))
     ))
 
 ;; To silence Warning: reference to free variable
-(defvar realgud:node-inspect-command-name)
+(defvar realgud:mobdebug-command-name)
 
-(defun realgud:node-inspect-suggest-invocation (debugger-name)
-  "Suggest a node-inspect command invocation via `realgud-suggest-invocaton'."
-  (realgud-suggest-invocation realgud:node-inspect-command-name
-			      realgud:node-inspect-minibuffer-history
-			      "js" "\\.js$"))
+(defun realgud:mobdebug-suggest-invocation (debugger-name)
+  "Suggest a mobdebug command invocation via `realgud-suggest-invocaton'."
+  (realgud-suggest-invocation realgud:mobdebug-command-name
+                              realgud:mobdebug-minibuffer-history
+                              "lua" "\\.lua$"))
 
-(defun realgud:node-inspect-remove-ansi-shmutz()
+(defun realgud:mobdebug-remove-ansi-shmutz()
   "Remove ASCII escape sequences that node.js 'decorates' in
 prompts and interactive output."
   (add-to-list
@@ -146,28 +118,28 @@ prompts and interactive output."
      (replace-regexp-in-string "\033\\[[0-9]+[GKJ]" "" output)))
   )
 
-(defun realgud:node-inspect-reset ()
-  "Node-Inspect cleanup - remove debugger's internal buffers (frame,
+(defun realgud:mobdebug-reset ()
+  "Mobdebug cleanup - remove debugger's internal buffers (frame,
 breakpoints, etc.)."
   (interactive)
-  ;; (node-inspect-breakpoint-remove-all-icons)
+  ;; (mobdebug-breakpoint-remove-all-icons)
   (dolist (buffer (buffer-list))
-    (when (string-match "\\*node-inspect-[a-z]+\\*" (buffer-name buffer))
+    (when (string-match "\\*mobdebug-[a-z]+\\*" (buffer-name buffer))
       (let ((w (get-buffer-window buffer)))
         (when w
           (delete-window w)))
       (kill-buffer buffer))))
 
-;; (defun node-inspect-reset-keymaps()
+;; (defun mobdebug-reset-keymaps()
 ;;   "This unbinds the special debugger keys of the source buffers."
 ;;   (interactive)
-;;   (setcdr (assq 'node-inspect-debugger-support-minor-mode minor-mode-map-alist)
-;; 	  node-inspect-debugger-support-minor-mode-map-when-deactive))
+;;   (setcdr (assq 'mobdebug-debugger-support-minor-mode minor-mode-map-alist)
+;; 	  mobdebug-debugger-support-minor-mode-map-when-deactive))
 
 
-(defun realgud:node-inspect-customize ()
-  "Use `customize' to edit the settings of the `node-inspect' debugger."
+(defun realgud:mobdebug-customize ()
+  "Use `customize' to edit the settings of the `mobdebug' debugger."
   (interactive)
-  (customize-group 'realgud:node-inspect))
+  (customize-group 'realgud:mobdebug))
 
-(provide-me "realgud:node-inspect-")
+(provide-me "realgud:mobdebug-")

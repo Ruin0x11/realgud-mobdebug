@@ -6,7 +6,7 @@
 (require 'realgud)
 
 (load-file "./regexp-helper.el")
-(load-file "../realgud-node-inspect/init.el")
+(load-file "../realgud-mobdebug/init.el")
 
 (declare-function realgud-cmdbuf-info-loc-regexp 'realgud-buffer-command)
 (declare-function cmdbuf-loc-match               'realgud-regexp-helper)
@@ -23,7 +23,7 @@
 (declare-function assert-equal 'test-simple)
 (declare-function note 'test-simple)
 (declare-function end-tests 'test-simple)
-(declare-function realgud-loc-pat-char-offset-group  'realgud:nodejs-init)
+(declare-function realgud-loc-pat-char-offset-group  'realgud:mobdebug-init)
 
 (test-simple-start)
 
@@ -41,13 +41,13 @@
   (defvar test-dbgr)
   (defvar test-s1)
   (defvar realgud-pat-bt)
-  (defvar realgud:nodejs-pat-hash)
+  (defvar realgud:mobdebug-pat-hash)
 )
 
 ; Some setup usually done in setting up the buffer.
 ; We customize this for the debugger trepan. Others may follow.
 ; FIXME: encapsulate this.
-(setq dbg-name "nodejs")
+(setq dbg-name "mobdebug")
 (setq loc-pat (gethash "loc" (gethash dbg-name realgud-pat-hash)))
 
 (setq test-dbgr (make-realgud-cmdbuf-info
@@ -59,28 +59,34 @@
 
 (note "debugger-backtrace")
 (setq realgud-pat-bt  (gethash "debugger-backtrace"
-			     realgud:nodejs-pat-hash))
+			     realgud:mobdebug-pat-hash))
 (setq test-s1
-      "#0 module.js:380:17
-#1 Module._compile module2.js:456:26
-#2 Module._extensions..js module.js:474:10
-#3 Module.load module.js:356:32
+      "{\"load\", \"main.lua\", 12, 17, \"Lua\", \"field\", \"main.lua\"}
+{nil, \"boot.lua\", 576, 577, \"Lua\", \"\", \"[string \\\"boot.lua\\\"]\"}
+{\"xpcall\", \"=[C]\", -1, -1, \"C\", \"global\", \"[C]\"}
+{nil, \"boot.lua\", 771, 784, \"Lua\", \"\", \"[string \\\"boot.lua\\\"]\"}
+{\"xpcall\", \"=[C]\", -1, -1, \"C\", \"global\", \"[C]\"}
+{nil, \"boot.lua\", 760, 793, \"Lua\", \"\", \"[string \\\"boot.lua\\\"]\"}
 ")
 
 (setq bt-re (realgud-loc-pat-regexp realgud-pat-bt))
 (setq num-group (realgud-loc-pat-num realgud-pat-bt))
+(setq function-group (realgud-loc-pat-function-group realgud-pat-bt))
 (setq file-group (realgud-loc-pat-file-group realgud-pat-bt))
 (setq line-group (realgud-loc-pat-line-group realgud-pat-bt))
 (setq col-group (realgud-loc-pat-char-offset-group realgud-pat-bt))
 (assert-equal 0 (string-match bt-re test-s1))
-(assert-equal "0" (substring test-s1
-			     (match-beginning num-group)
-			     (match-end num-group)))
-(assert-equal "module.js"
+; (assert-equal "0" (substring test-s1
+; 			     (match-beginning num-group)
+; 			     (match-end num-group)))
+(assert-equal "load" (substring test-s1
+			     (match-beginning function-group)
+			     (match-end function-group)))
+(assert-equal "main.lua"
 	      (substring test-s1
 			 (match-beginning file-group)
 			 (match-end file-group)))
-(assert-equal "380"
+(assert-equal "12"
 	      (substring test-s1
 			 (match-beginning line-group)
 			 (match-end line-group)))
@@ -89,30 +95,48 @@
 			     (match-end col-group)))
 
 (setq test-pos (match-end 0))
-(assert-equal 19 (string-match bt-re test-s1 test-pos))
+(assert-equal 121 (string-match bt-re test-s1 test-pos))
 
+(note "loc")
+(setq realgud-pat-bt  (gethash "loc"
+			     realgud:mobdebug-pat-hash))
 (setq test-s1
-      "#1 Module._compile module2.js:456:26
-#2 Module._extensions..js module.js:474:10
-#3 Module.load module.js:356:32
-")
-(assert-equal 0 (string-match bt-re test-s1))
-
-(assert-equal "1" (substring test-s1
-			     (match-beginning num-group)
-			     (match-end num-group)))
-(assert-equal "module2.js"
+      "get step\nPaused at file internal/draw.lua line 28\n> \n")
+(setq bt-re (realgud-loc-pat-regexp realgud-pat-bt))
+(setq file-group (realgud-loc-pat-file-group realgud-pat-bt))
+(setq line-group (realgud-loc-pat-line-group realgud-pat-bt))
+(assert-equal 9 (string-match bt-re test-s1))
+(assert-equal "internal/draw.lua"
 	      (substring test-s1
 			 (match-beginning file-group)
 			 (match-end file-group)))
-(assert-equal "456"
+(assert-equal "28"
 	      (substring test-s1
 			 (match-beginning line-group)
 			 (match-end line-group)))
-(assert-equal "26" (substring test-s1
-			      (match-beginning col-group)
-			      (match-end col-group)))
-(setq test-pos (match-end 0))
-(assert-equal 36 test-pos)
+
+;; (setq test-s1
+      ;; "#1 Module._compile module2.js:456:26
+;; #2 Module._extensions..js module.js:474:10
+;; #3 Module.load module.js:356:32
+;; ")
+;; (assert-equal 0 (string-match bt-re test-s1))
+;;
+;; (assert-equal "1" (substring test-s1
+			     ;; (match-beginning num-group)
+			     ;; (match-end num-group)))
+;; (assert-equal "module2.js"
+	      ;; (substring test-s1
+			 ;; (match-beginning file-group)
+			 ;; (match-end file-group)))
+;; (assert-equal "456"
+	      ;; (substring test-s1
+			 ;; (match-beginning line-group)
+			 ;; (match-end line-group)))
+;; (assert-equal "26" (substring test-s1
+			      ;; (match-beginning col-group)
+			      ;; (match-end col-group)))
+;; (setq test-pos (match-end 0))
+;; (assert-equal 36 test-pos)
 
 (end-tests)

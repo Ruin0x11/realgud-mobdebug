@@ -6,8 +6,8 @@
 
 (eval-when-compile (defvar test:run-process-save))
 
-(declare-function nodejs-parse-cmd-args 'realgud:nodejs)
-(declare-function nodejs                'realgud:nodejs)
+(declare-function mobdebug-parse-cmd-args 'realgud:mobdebug)
+(declare-function mobdebug                'realgud:mobdebug)
 (declare-function __FILE__              'load-relative)
 
 (test-simple-start)
@@ -28,8 +28,8 @@
 (assert-equal '(("node") nil ("inspect" "foo"))
 	      (node-inspect-parse-cmd-args '("node" "inspect" "foo")))
 
-;; FIXME: need to mock remove-ansi-schmutz in realgud:nodejs
-;; (realgud:nodejs "node inspect ./gcd.js 3 5")
+;; FIXME: need to mock remove-ansi-schmutz in realgud:mobdebug
+;; (realgud:mobdebug "node inspect ./gcd.js 3 5")
 
 ;; Restore the old value of realgud:run-process
 (fset 'realgud:run-process test:run-process-save)

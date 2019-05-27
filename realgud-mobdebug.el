@@ -1,10 +1,10 @@
-;;; realgud-node-inspect.el --- Realgud front-end to newer "node inspect" -*- lexical-binding: t -*-
+;;; realgud-mobdebug.el --- Realgud front-end to newer "node inspect" -*- lexical-binding: t -*-
 
 ;; Author: Rocky Bernstein <rocky@gnu.org>
 ;; Version: 1.0.0
 ;; Package-Type: multi
 ;; Package-Requires: ((realgud "1.4.5") (load-relative "1.2") (cl-lib "0.5") (emacs "24"))
-;; URL: http://github.com/realgud/realgud-node-inspect
+;; URL: http://github.com/realgud/realgud-mobdebug
 ;; Compatibility: GNU Emacs 24.x
 
 ;; Copyright (C) 2019 Free Software Foundation, Inc
@@ -38,15 +38,15 @@
 ;; (compile (format "EMACSLOADPATH=:%s:%s:%s:%s ./autogen.sh" (file-name-directory (locate-library "test-simple.elc")) (file-name-directory (locate-library "realgud.elc")) (file-name-directory (locate-library "load-relative.elc")) (file-name-directory (locate-library "loc-changes.elc"))))
 (require 'load-relative)
 
-(defgroup realgud-node-inspector  nil
+(defgroup realgud-mobdebug  nil
   "Realgud interface to the 'node inspect' debugger"
   :group 'realgud
   :version "25.1")
 
-(require-relative-list '( "./realgud-node-inspect/node-inspect" ) "realgud-")
-(load-relative "./realgud-node-inspect/node-inspect.el")
-(load-relative "./realgud-node-inspect/track-mode.el")
+(require-relative-list '( "./realgud-mobdebug/mobdebug" ) "realgud-")
+(load-relative "./realgud-mobdebug/mobdebug.el")
+(load-relative "./realgud-mobdebug/track-mode.el")
 
 (provide-me)
 
-;;; realgud-node-inspect.el ends here
+;;; realgud-mobdebug.el ends here

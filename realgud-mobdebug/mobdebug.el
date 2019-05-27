@@ -14,17 +14,17 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;  `realgud:node-inspect' Main interface to "node inspect" debugger via Emacs
+;;  `realgud:mobdebug' Main interface to "node inspect" debugger via Emacs
 
 (require 'cl-lib)
 (require 'load-relative)
 (require 'realgud)
-(require-relative-list '("core" "track-mode") "realgud:node-inspect-")
+(require-relative-list '("core" "track-mode") "realgud:mobdebug-")
 
 ;; This is needed, or at least the docstring part of it is needed to
 ;; get the customization menu to work in Emacs 25.
-(defgroup realgud:node-inspect nil
-  "The realgud interface to the node-inspect debugger"
+(defgroup realgud:mobdebug nil
+  "The realgud interface to the mobdebug debugger"
   :group 'realgud
   :version "25.1")
 
@@ -32,30 +32,30 @@
 ;; User-definable variables
 ;;
 
-(defcustom realgud:node-inspect-command-name
-  "node inspect"
+(defcustom realgud:mobdebug-command-name
+  "bash /home/ruin/build/work/realgud-mobdebug/glue.sh love"
   "File name for executing the Javascript debugger and command options.
 This should be an executable on your path, or an absolute file name."
   :type 'string
-  :group 'realgud:node-inspect)
+  :group 'realgud:mobdebug)
 
 ;; -------------------------------------------------------------------
 ;; The end.
 ;;
 
-(declare-function node-inspect-track-mode     'realgud-node-inspect-track-mode)
-(declare-function node-inspect-query-cmdline  'realgud:node-inspect-core)
-(declare-function node-inspect-parse-cmd-args 'realgud:node-inspect-core)
+(declare-function mobdebug-track-mode     'realgud-mobdebug-track-mode)
+(declare-function mobdebug-query-cmdline  'realgud:mobdebug-core)
+(declare-function mobdebug-parse-cmd-args 'realgud:mobdebug-core)
 
 ;;;###autoload
-(defun realgud:node-inspect (&optional opt-cmd-line no-reset)
-  "Invoke the node-inspect shell debugger and start the Emacs user interface.
+(defun realgud:mobdebug (&optional opt-cmd-line no-reset)
+  "Invoke the mobdebug shell debugger and start the Emacs user interface.
 
-String OPT-CMD-LINE specifies how to run node-inspect.
+String OPT-CMD-LINE specifies how to run mobdebug.
 
 OPT-CMD-LINE is treated like a shell string; arguments are
 tokenized by `split-string-and-unquote'.  The tokenized string is
-parsed by `node-inspect-parse-cmd-args' and path elements found by that
+parsed by `mobdebug-parse-cmd-args' and path elements found by that
 are expanded using `realgud:expand-file-name-if-exists'.
 
 Normally, command buffers are reused when the same debugger is
@@ -67,19 +67,19 @@ marginal icons is reset.  See `loc-changes-clear-buffer' to clear
 fringe and marginal icons."
   (interactive)
   (let ((cmd-buf
-	 (realgud:run-debugger "node-inspect"
-			       'node-inspect-query-cmdline 'node-inspect-parse-cmd-args
-			       'realgud:node-inspect-minibuffer-history
+	 (realgud:run-debugger "mobdebug"
+			       'mobdebug-query-cmdline 'mobdebug-parse-cmd-args
+			       'realgud:mobdebug-minibuffer-history
 			       opt-cmd-line no-reset)))
-    ;; (if cmd-buf
-    ;; 	(with-current-buffer cmd-buf
-    ;; 	  ;; FIXME should allow customization whether to do or not
-    ;; 	  ;; and also only do if hook is not already there.
-    ;; 	  (realgud:remove-ansi-schmutz)
-    ;; 	  )
-    ;;   )
+    (if cmd-buf
+    	(with-current-buffer cmd-buf
+    	  ;; FIXME should allow customization whether to do or not
+    	  ;; and also only do if hook is not already there.
+          (realgud-command "step" nil nil nil)
+    	  )
+      )
     ))
 
-(defalias 'node-inspect 'realgud:node-inspect)
+(defalias 'mobdebug 'realgud:mobdebug)
 
 (provide-me "realgud-")

@@ -15,7 +15,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; "node inspect" tracking a comint or eshell buffer.
+;; mobdebug tracking a comint or eshell buffer.
 
 (require 'load-relative)
 (require 'realgud)
@@ -24,62 +24,62 @@
 (declare-function realgud-track-mode-setup   'realgud-track-mode)
 (declare-function realgud:remove-ansi-schmutz 'realgud:utils)
 
-(require-relative-list '("core" "init") "realgud:node-inspect-")
+(require-relative-list '("core" "init") "realgud:mobdebug-")
 
-(realgud-track-mode-vars "realgud:node-inspect")
+(realgud-track-mode-vars "realgud:mobdebug")
 
-(defun realgud:node-inspect-track-mode-hook()
-  (if realgud:node-inspect-track-mode
+(defun realgud:mobdebug-track-mode-hook()
+  (if realgud:mobdebug-track-mode
       (progn
-	(use-local-map realgud:node-inspect-track-mode-map)
+	(use-local-map realgud:mobdebug-track-mode-map)
 	(realgud:remove-ansi-schmutz)
-	(message "using node-inspect mode map")
+	(message "using mobdebug mode map")
 	)
-    (message "node-inspect track-mode-hook disable called"))
+    (message "mobdebug track-mode-hook disable called"))
 )
 
 ;; FIXME: this shouldn't be needed
-(defvar realgud:node-inspect-track-mode-map (make-keymap))
-(define-key realgud:node-inspect-track-mode-map
+(defvar realgud:mobdebug-track-mode-map (make-keymap))
+(define-key realgud:mobdebug-track-mode-map
   (kbd "C-c !f") 'realgud:js-goto-file-line)
 
-(define-minor-mode realgud:node-inspect-track-mode
-  "Minor mode for tracking node-inspect source locations inside a node-inspect shell via realgud.
+(define-minor-mode realgud:mobdebug-track-mode
+  "Minor mode for tracking mobdebug source locations inside a mobdebug shell via realgud.
 
 If called interactively with no prefix argument, the mode is
 toggled. A prefix argument, captured as ARG, enables the mode if
 the argument is positive, and disables it otherwise.
 
-\\{realgud:node-inspect-track-mode-map}"
+\\{realgud:mobdebug-track-mode-map}"
   :init-value nil
-  ;; :lighter " node-inspect"   ;; mode-line indicator from realgud-track is sufficient.
+  ;; :lighter " mobdebug"   ;; mode-line indicator from realgud-track is sufficient.
   ;; The minor mode bindings.
   :global nil
-  :group 'realgud:node-inspect
-  :keymap realgud:node-inspect-track-mode-map
+  :group 'realgud:mobdebug
+  :keymap realgud:mobdebug-track-mode-map
 
-  (if realgud:node-inspect-track-mode
+  (if realgud:mobdebug-track-mode
       (progn
-	(realgud:track-set-debugger "node-inspect")
-        (realgud:node-inspect-track-mode-hook)
+	(realgud:track-set-debugger "mobdebug")
+        (realgud:mobdebug-track-mode-hook)
         (realgud:track-mode-enable))
     (progn
       (setq realgud-track-mode nil)
       ))
   )
 
-;; ;; Debugger commands that node-inspect doesn't have
-;; (define-key node-inspect-track-mode-map
+;; ;; Debugger commands that mobdebug doesn't have
+;; (define-key mobdebug-track-mode-map
 ;;   [remap realgud:cmd-newer-frame] 'undefined)
-;; (define-key node-inspect-track-mode-map
+;; (define-key mobdebug-track-mode-map
 ;;   [remap realgud:cmd-older-frame] 'undefined)
-(defvar realgud:node-inspect-short-key-mode-map (make-keymap))
+(defvar realgud:mobdebug-short-key-mode-map (make-keymap))
 
-(define-key realgud:node-inspect-short-key-mode-map
+(define-key realgud:mobdebug-short-key-mode-map
   [remap realgud:cmd-step] 'realgud:cmd-step-no-arg)
-(define-key realgud:node-inspect-short-key-mode-map
+(define-key realgud:mobdebug-short-key-mode-map
   [remap realgud:cmd-step] 'realgud:cmd-step-no-arg)
-(define-key realgud:node-inspect-short-key-mode-map
+(define-key realgud:mobdebug-short-key-mode-map
   [remap realgud:cmd-next] 'realgud:cmd-next-no-arg)
 
-(provide-me "realgud:node-inspect-")
+(provide-me "realgud:mobdebug-")

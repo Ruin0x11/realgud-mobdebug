@@ -43,9 +43,10 @@ This should be an executable on your path, or an absolute file name."
 ;; The end.
 ;;
 
-(declare-function mobdebug-track-mode     'realgud-mobdebug-track-mode)
-(declare-function mobdebug-query-cmdline  'realgud:mobdebug-core)
-(declare-function mobdebug-parse-cmd-args 'realgud:mobdebug-core)
+(declare-function mobdebug-track-mode         'realgud-mobdebug-track-mode)
+(declare-function mobdebug-query-cmdline      'realgud:mobdebug-core)
+(declare-function mobdebug-parse-cmd-args     'realgud:mobdebug-core)
+(declare-function mobdebug-file-search-upward 'realgud:mobdebug-core)
 
 ;;;###autoload
 (defun realgud:mobdebug (&optional opt-cmd-line no-reset)
@@ -75,8 +76,11 @@ fringe and marginal icons."
     	(with-current-buffer cmd-buf
     	  ;; FIXME should allow customization whether to do or not
     	  ;; and also only do if hook is not already there.
-          (realgud-command "basedir %s" default-directory nil nil)
-          (realgud-command "step" nil nil nil)
+          (let* ((love-main-file (realgud:mobdebug-file-search-upward default-directory "main.lua"))
+                 (basedir (or (and love-main-file (file-name-directory love-main-file))
+                              default-directory)))
+            (realgud-command "basedir %s" basedir nil nil)
+            (realgud-command "step" nil nil nil))
     	  )
       )
     ))

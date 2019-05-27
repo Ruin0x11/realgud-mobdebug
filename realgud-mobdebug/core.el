@@ -103,11 +103,27 @@ Note that path elements have been expanded via `expand-file-name'."
 ;; To silence Warning: reference to free variable
 (defvar realgud:mobdebug-command-name)
 
+(defun realgud:mobdebug-file-search-upward (directory file)
+  "Search DIRECTORY for FILE and return its full path if found, or NIL if not.
+
+If FILE is not found in DIRECTORY, the parent of DIRECTORY will be searched."
+  (let ((parent-dir (file-truename (concat (file-name-directory directory) "../")))
+        (current-path (if (not (string= (substring directory (- (length directory) 1)) "/"))
+                         (concat directory "/" file)
+                         (concat directory file))))
+    (if (file-exists-p current-path)
+        current-path
+        (when (and (not (string= (file-truename directory) parent-dir))
+                   (< (length parent-dir) (length (file-truename directory))))
+          (realgud:mobdebug-file-search-upward parent-dir file)))))
+
 (defun realgud:mobdebug-suggest-invocation (debugger-name)
   "Suggest a mobdebug command invocation via `realgud-suggest-invocaton'."
-  (realgud-suggest-invocation realgud:mobdebug-command-name
-                              realgud:mobdebug-minibuffer-history
-                              "lua" "\\.lua$"))
+  (if-let ((love-main-file (realgud:mobdebug-file-search-upward default-directory "main.lua")))
+      (concat realgud:mobdebug-command-name " " love-main-file)
+    (realgud-suggest-invocation realgud:mobdebug-command-name
+                                realgud:mobdebug-minibuffer-history
+                                "lua" "\\.lua$")))
 
 (defun realgud:mobdebug-remove-ansi-shmutz()
   "Remove ASCII escape sequences that node.js 'decorates' in
